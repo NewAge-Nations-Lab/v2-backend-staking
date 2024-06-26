@@ -7,7 +7,8 @@ import cors from 'cors';
 import { connect } from "./config/connectionState.js";
 import authRoute from "./routes/authRoute.js";
 import userRouter from './routes/userRoute.js';
-import balancesRouter from './routes/balancesRoute.js'
+import balancesRouter from './routes/balancesRoute.js';
+import stakingRouter from './routes/stakingRoute.js';
 
 
 
@@ -35,6 +36,7 @@ connect();
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRouter);
 app.use('/api/balances', balancesRouter);
+app.use('/api/stake', stakingRouter);
 
 
 

@@ -1,11 +1,10 @@
-//user.js file
+// user.js
 import mongoose from "mongoose";
 import passport from "passport";
 import passportLocalMongoose from "passport-local-mongoose";
 
-// User schema 
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true }, // Make username unique
+  username: { type: String, required: true, unique: true },
   password: String,
   resetPasswordToken: String,
   resetPasswordExpires: Date,
@@ -13,36 +12,38 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, required: false },
   NacBalance: { type: Number, default: 0 },
   DaiBalance: { type: Number, default: 0 },
-  AmountStaked: { type: Number, default: 0 },
   stakeCount: { type: Number, default: 0 },
   DaiRewardBalance: { type: Number, default: 0 },
   NacRewardBalance: { type: Number, default: 0 },
+  stakes: [{
+    amount: Number,
+    startDate: Date,
+    duration: Number, // in days
+    dailyNacClaimed: { type: Boolean, default: false },
+    monthlyDaiClaimed: { type: Boolean, default: false }
+  }],
   isAdmin: { type: Boolean, default: false },
   isVerified: { type: Boolean, default: false },
-  underInsurrance: { type: Boolean, default: false },
-  verificationcode: String,
+  verificationCode: String,
 });
 
-// Add passport-local-mongoose plugin with usernameField set to 'username'
 userSchema.plugin(passportLocalMongoose, { usernameField: 'username' });
 
 const User = mongoose.model("User", userSchema);
 
 passport.use(User.createStrategy());
 
-passport.serializeUser(function (user, done) {
+passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(function (id, done) {
-  User.findById(id)
-    .then(user => {
-      done(null, user);
-    })
-    .catch(err => {
-      done(err, null);
-    });
+passport.deserializeUser((id, done) => {
+  User.findById(id).then(user => {
+    done(null, user);
+  }).catch(err => {
+    done(err, null);
+  });
 });
 
-
 export default User;
+
