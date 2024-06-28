@@ -1,41 +1,47 @@
 // userController.js
 import crypto from 'crypto';
 import User from "../models/user.js";
-import { sendVerificationEmail } from "../utils/nodeMailer.js";
+import { sendForgotPasswordEmail } from "../utils/nodeMailer.js";
 
 const userController = {
 
 
-  // To get user profile by userId
-
-  getProfile: async (req, res) => {
+   // Get user profile by userId
+   getProfile: async (req, res) => {
     try {
-      const userId = req.params.userId; // Assuming userId is passed as a route parameter
-      const user = await User.findById(userId);
+      const userId = req.params.userId;
+      
+      // Find the user by ID
+      const user = await User.findById(userId).populate('referrer', 'username');
 
       if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
+        return res.status(404).json({ message: 'User not found' });
       }
 
-      // Base user profile
-      let userProfile = {
+      // Structure the user profile data
+      const userProfile = {
         username: user.username,
-        phone: user.phone,
         email: user.email,
-        emailVerification: user.isVerified
+        phone: user.phone,
+        NacBalance: user.NacBalance,
+        DaiBalance: user.DaiBalance,
+        stakeCount: user.stakeCount,
+        DaiRewardBalance: user.DaiRewardBalance,
+        NacRewardBalance: user.NacRewardBalance,
+        duration: user.duration,
+        stakes: user.stakes,
+        isAdmin: user.isAdmin,
+        isVerified: user.isVerified,
+        referralCode: user.referralCode,
+        referrer: user.referrer ? { username: user.referrer.username, _id: user.referrer._id } : null
       };
 
-      return res.status(200).json({ message: 'User profile retrieved successfully', userProfile });
+      return res.status(200).json({ profile: userProfile });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: 'Unexpected error during profile retrieval' });
     }
   },
-
-
-
-
-
 
 
 
@@ -124,7 +130,7 @@ const userController = {
       const resetLink = `http://${req.headers.host}/api/user/reset-password/${token}`;
 
       // Use your sendVerificationEmail function
-      await sendVerificationEmail(user.email, `Please click on the following link, or paste this into your browser to complete the process: ${resetLink}`);
+      await sendForgotPasswordEmail(user.email, `Please click on the following link, or paste this into your browser to complete the process: ${resetLink}`);
 
       res.status(200).json({ message: 'An e-mail has been sent to ' + user.email + ' with further instructions.' });
     } catch (error) {
@@ -160,6 +166,49 @@ const userController = {
       res.status(500).json({ message: 'Unexpected error during the password reset process' });
     }
   },
+
+
+  getReferrals: async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await User.findById(userId).populate('referrals', 'username email');
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Map referrals to include username as referralCode
+      const referrals = user.referrals.map(referral => ({
+        username: referral.username,
+        email: referral.email,
+        referralCode: referral.username // Use username as referralCode
+      }));
+  
+      res.status(200).json({ referrals });
+    } catch (error) {
+      console.error('Error fetching referrals:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  },
+  
+  
+
+  getReferralName: async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await User.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.status(200).json({ referralName: user.username }); // Return username as referralCode
+    } catch (error) {
+      console.error('Error fetching referral code:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  },
+  
 
   
   

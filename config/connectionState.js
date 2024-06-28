@@ -14,8 +14,11 @@ const connect = async () => {
   console.log("Database connecting...");
 
   try {
-    await mongoose.connect(`mongodb+srv://newagenationslab:OANflDztkdDFiYHD@cluster0.p9v2gze.mongodb.net/`);
-    
+    await mongoose.connect('mongodb+srv://newagenationslab:OANflDztkdDFiYHD@cluster0.p9v2gze.mongodb.net/newage?retryWrites=true&w=majority', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      dbName: 'newage'
+    });
     
     connectionState.connected = true;
     console.log("Database Connected!");

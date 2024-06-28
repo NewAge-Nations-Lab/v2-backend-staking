@@ -7,63 +7,76 @@ import { generateVerificationCode } from "../utils/verficationCodeGenerator.js";
 
 
 
+
 const authController = {
 
   register: async (req, res) => {
     try {
-      const { username, email, password, phone } = req.body;
-  
+      const { username, email, password, phone, referralCode } = req.body;
+
       // Generate verification code
-      const verificationcode = generateVerificationCode();
-  
+      const verificationCode = generateVerificationCode();
+
       // Create a new user instance
       const newUser = new User({
         username,
         email,
         phone,
-        verificationcode,
+        verificationCode,
+        referralCode: username // Update referralCode with the new user's username
       });
-  
+
+      // Handle referral
+      if (referralCode) {
+        // Find the referring user
+        const referringUser = await User.findOne({ referralCode: referralCode });
+
+        if (referringUser) {
+          newUser.referrer = referringUser._id; // Assign the referrer's ID to the newUser
+          referringUser.referrals.push(newUser);
+          await referringUser.save();
+        } else {
+          console.log(`Referring user not found for referralCode: ${referralCode}`);
+          return res.status(400).json({ message: `Referring user not found for referralCode: ${referralCode}` });
+        }
+      }
+
       // Register the user
-      await User.register(newUser, password, async (err, user) => {
+      User.register(newUser, password, async (err, user) => {
         if (err) {
           // Handle registration errors
           console.error(err);
           if (err.name === 'UserExistsError') {
             return res.status(400).json({ message: 'User already registered' });
           } else {
-            console.error(err);
             return res.status(500).json({ message: 'Internal Server Error' });
           }
         }
-  
+
         // Send verification code via email
         try {
-          await sendVerificationEmail(user.email, verificationcode);
+          await sendVerificationEmail(user.email, verificationCode);
         } catch (emailError) {
           console.error('Error sending verification email:', emailError);
           // Handle email sending error
           return res.status(500).json({ message: 'Error sending verification email' });
         }
-  
+
         passport.authenticate('local')(req, res, () => {
-          // Redirect to verify route
           res.status(200).json({ 
             message: `Verification code sent to ${user.email}`, 
             redirectTo: "/verify",
-            userId: user._id, // Return user ID
-            email: user.email // Return user email
+            userId: user._id,
+            email: user.email,
+            referral: user.referralCode // Return the updated referralCode
           });
         });
-        
-        
-    });
+      });
     } catch (error) {
       console.error('Error during registration:', error);
       return res.status(500).json({ message: 'Unexpected error during registration' });
     }
   },
-  
 
 
 
@@ -141,6 +154,8 @@ verify: async (req, res) => {
     const { userId } = req.params; // Extract userId from request params
     const { verifyCode } = req.body; // Extract verification code from request body
 
+   
+
     // Find the user by userId
     const user = await User.findById(userId);
 
@@ -155,13 +170,13 @@ verify: async (req, res) => {
     }
 
     // Check if the verification code matches the one in the database
-    if (user.verificationcode !== verifyCode) {
+    if (user.verificationCode !== verifyCode) {
       return res.status(400).json({ message: 'Invalid verification code' });
     }
 
     // Update user's verification status
     user.isVerified = true;
-    user.verificationcode = null; //clear the code after successful verification
+    user.verificationCode = 'verified'; //clear the code after successful verification
     await user.save();
 
     // Return success response

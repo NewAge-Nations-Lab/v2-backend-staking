@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema({
   DaiRewardBalance: { type: Number, default: 0 },
   NacRewardBalance: { type: Number, default: 0 },
   stakes: [{
-    amount: Number,
+    nacAmount: Number,
+    daiAmount: Number,
     startDate: Date,
     duration: Number, // in days
     dailyNacClaimed: { type: Boolean, default: false },
@@ -25,6 +26,9 @@ const userSchema = new mongoose.Schema({
   isAdmin: { type: Boolean, default: false },
   isVerified: { type: Boolean, default: false },
   verificationCode: String,
+  referralCode: String,
+  referrer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // just like the upline
+  referrals: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]  // just like the downlines
 });
 
 userSchema.plugin(passportLocalMongoose, { usernameField: 'username' });
@@ -46,4 +50,3 @@ passport.deserializeUser((id, done) => {
 });
 
 export default User;
-

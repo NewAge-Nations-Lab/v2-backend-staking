@@ -4,7 +4,7 @@ import session from 'express-session';
 import passport from 'passport';
 import bodyParser from "body-parser";
 import cors from 'cors';
-import { connect } from "./config/connectionState.js";
+import { connect, disconnect } from "./config/connectionState.js";
 import authRoute from "./routes/authRoute.js";
 import userRouter from './routes/userRoute.js';
 import balancesRouter from './routes/balancesRoute.js';
@@ -32,6 +32,7 @@ app.use(passport.session());
 
 
 connect();
+
 
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRouter);
