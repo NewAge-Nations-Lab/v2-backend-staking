@@ -187,7 +187,7 @@ verify: async (req, res) => {
     await user.save();
 
     // Return success response
-    return res.status(201).json({
+    return res.status(200).json({
       message: 'Email Verified Successfully, you can login into your account now'
     });
   } catch (error) {
