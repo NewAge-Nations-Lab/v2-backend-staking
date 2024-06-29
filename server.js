@@ -15,8 +15,22 @@ import stakingRouter from './routes/stakingRoute.js';
 const app = express();
 
 
+const allowedOrigins = ['http://localhost:3001']; // Add other allowed origins if necessary
+
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = 'The CORS policy for this site does not allow access from the specified origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true
+  }));
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
