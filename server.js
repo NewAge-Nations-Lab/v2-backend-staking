@@ -37,8 +37,14 @@ app.use(express.json());
 app.use(session({
     secret: "Monkey loves to eat banana",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: false, // Set to true if using HTTPS
+        sameSite: 'lax' // or 'strict'
+    }
 }));
+
 
 app.use(passport.initialize());
 app.use(passport.session());
