@@ -106,7 +106,7 @@ const authController = {
             isVerified: { status: user.isVerified, message: "for email verification" },
           },
         };
-        res.status(201).json(responseData);
+        res.status(200).json(responseData);
       });
     })(req, res);
   },
