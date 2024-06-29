@@ -1,7 +1,7 @@
 // userRoutes.js
 import express from "express";
 import userController from "../controllers/userController.js";
-import { ensureAuthenticated } from "../middleware/authMiddleware.js";
+import { ensureAuthenticated } from "../middleware/authMiddleWare.js";
 
 const router = express.Router();
 

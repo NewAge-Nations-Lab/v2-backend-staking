@@ -1,6 +1,4 @@
 //authRoute.js
-
-import passport from "passport";
 import express from "express";
 import authController from "../controllers/authController.js";
 
