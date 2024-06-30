@@ -109,18 +109,19 @@ const authController = {
   },
 
   // authController.js
-checkAuth: async (req, res) => {
-  try {
-    if (req.isAuthenticated()) {
-      res.status(200).json({ loggedIn: true, user: req.user });
-    } else {
-      res.status(401).json({ loggedIn: false, message: 'User not authenticated' });
+  checkAuth: async (req, res) => {
+    try {
+      if (req.isAuthenticated()) {
+        res.status(200).json({ loggedIn: true, user: req.user });
+      } else {
+        res.status(401).json({ loggedIn: false, message: 'User not authenticated' });
+      }
+    } catch (error) {
+      console.error('Error during authentication check:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
-  } catch (error) {
-    console.error('Error during authentication check:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-},
+  },
+  
 
   
   
