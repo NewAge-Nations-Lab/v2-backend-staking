@@ -40,7 +40,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true in production, false otherwise
+      secure: process.env.NODE_ENV === 'development', // true in production, false otherwise
       sameSite: 'lax'
     }
   }));
