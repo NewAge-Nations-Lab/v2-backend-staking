@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from "express";
 import session from 'express-session';
-import passport from 'passport';
+import passport from './config/passportConfig.js'; 
 import bodyParser from "body-parser";
 import cors from 'cors';
 import { connect } from "./config/connectionState.js";

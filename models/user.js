@@ -35,18 +35,6 @@ userSchema.plugin(passportLocalMongoose, { usernameField: 'username' });
 
 const User = mongoose.model("User", userSchema);
 
-passport.use(User.createStrategy());
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser((id, done) => {
-  User.findById(id).then(user => {
-    done(null, user);
-  }).catch(err => {
-    done(err, null);
-  });
-});
 
 export default User;
