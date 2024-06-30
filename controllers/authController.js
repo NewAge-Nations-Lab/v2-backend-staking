@@ -81,8 +81,6 @@ const authController = {
 
 
   login: async (req, res) => {
-
-
     passport.authenticate('local', (err, user, info) => {
       if (err) {
         console.error(err);
@@ -91,12 +89,11 @@ const authController = {
       if (!user) {
         return res.status(401).json({ message: 'Authentication failed' });
       }
-      req.logIn(user, async (err) => {
+      req.logIn(user, (err) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ message: 'Internal Server Error' });
         }
-        // Prepare the response data
         const responseData = {
           message: 'Successfully logged in',
           user: {
