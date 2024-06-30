@@ -17,19 +17,24 @@ const app = express();
 
 const allowedOrigins = ['http://localhost:3001', 'http://localhost:3001', 'https://newage-staking-v2.vercel.app/' ]; // Add other allowed origins if necessary
 
-// Middleware
+
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // Allow requests with no origin
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified origin.';
       return callback(new Error(msg), false);
     }
     return callback(null, true);
   },
-  credentials: true
+  credentials: true // Allow credentials (cookies)
 }));
+
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
+  
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
@@ -40,8 +45,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'development', // true in production, false otherwise
-      sameSite: 'lax'
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
   }));
 
