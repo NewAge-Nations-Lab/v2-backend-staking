@@ -11,13 +11,17 @@ router.get("/", (req, res) => {
 });
 
 // Route to get referrals
-router.get("/referrals/:userId", ensureAuthenticated, userController.getReferrals);
+router.get("/referrals/:userId", userController.getReferrals);
 
 // Route to get referral code
-router.get("/referral-code/:userId", ensureAuthenticated, userController.getReferralName);
+router.get("/referral-code/:userId", userController.getReferralCode);
 
 // Get user profile
-router.get("/profile/:userId", ensureAuthenticated, userController.getProfile);
+router.get("/profile/:userId", userController.getProfile);
+
+// userRoutes.js
+router.get("/total-staked/:userId", userController.getTotalStaked);
+
 
 // Other routes...
 router.put("/updateProfile/:userId", ensureAuthenticated, userController.upDateprofile);

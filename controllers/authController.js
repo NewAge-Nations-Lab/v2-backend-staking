@@ -1,6 +1,7 @@
 //authcontroller
 import passport from "passport";
 import User from "../models/user.js";
+import jwt from 'jsonwebtoken';
 import { sendVerificationEmail } from "../utils/nodeMailer.js";
 import { generateVerificationCode } from "../utils/verficationCodeGenerator.js";
 
@@ -14,25 +15,21 @@ const authController = {
     try {
       const { username, email, password, phone, referralCode } = req.body;
 
-      // Generate verification code
       const verificationCode = generateVerificationCode();
 
-      // Create a new user instance
       const newUser = new User({
         username,
         email,
         phone,
         verificationCode,
-        referralCode: username // Update referralCode with the new user's username
+        referralCode: username 
       });
 
-      // Handle referral
       if (referralCode) {
-        // Find the referring user
         const referringUser = await User.findOne({ referralCode: referralCode });
 
         if (referringUser) {
-          newUser.referrer = referringUser._id; // Assign the referrer's ID to the newUser
+          newUser.referrer = referringUser._id; 
           referringUser.referrals.push(newUser);
           await referringUser.save();
         } else {
@@ -41,10 +38,8 @@ const authController = {
         }
       }
 
-      // Register the user
       User.register(newUser, password, async (err, user) => {
         if (err) {
-          // Handle registration errors
           console.error(err);
           if (err.name === 'UserExistsError') {
             return res.status(400).json({ message: 'User already registered' });
@@ -53,12 +48,10 @@ const authController = {
           }
         }
 
-        // Send verification code via email
         try {
           await sendVerificationEmail(user.email, verificationCode);
         } catch (emailError) {
           console.error('Error sending verification email:', emailError);
-          // Handle email sending error
           return res.status(500).json({ message: 'Error sending verification email' });
         }
 
@@ -68,7 +61,7 @@ const authController = {
             redirectTo: "/verify",
             userId: user._id,
             email: user.email,
-            referral: user.referralCode // Return the updated referralCode
+            referral: user.referralCode 
           });
         });
       });
@@ -94,19 +87,26 @@ const authController = {
           console.error(err);
           return res.status(500).json({ message: 'Internal Server Error' });
         }
-        const responseData = {
-          message: 'Successfully logged in',
+
+        // Generate JWT
+        const jwtToken = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, {
+          expiresIn: '1h', // Set token expiration time as needed
+        });
+
+        // Include user object in the response
+        res.status(200).json({
+          message: "Welcome back",
+          token: jwtToken,
           user: {
             id: user._id,
             username: user.username,
-            email: user.email,
-            isVerified: { status: user.isVerified, message: "for email verification" },
+            email: user.email, // Include other user properties as needed
           },
-        };
-        res.status(200).json(responseData);
+        });
       });
     })(req, res);
   },
+  
 
   // authController.js
   checkAuth: async (req, res) => {
@@ -128,13 +128,11 @@ const authController = {
 
 
   logout: async function (req, res) {
-    // Check if the user is authenticated
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     try {
-      // Logout the user
       req.logout((err) => {
         if (err) {
           console.log(err);

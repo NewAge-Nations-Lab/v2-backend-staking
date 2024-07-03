@@ -1,17 +1,39 @@
-// authMiddleware.js
+import jwt from "jsonwebtoken";
+
 export const ensureAuthenticated = (req, res, next) => {
-    if (req.isAuthenticated()) {
-      return next();
-    } else {
-      res.status(401).json({ message: "Unauthorized" });
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
-  };
-  
-  export const ensureAdmin = (req, res, next) => {
-    if (req.isAuthenticated() && req.user.isAdmin) {
-      return next();
-    } else {
-      res.status(403).json({ message: "Forbidden" });
+
+    req.user = decoded;
+    next();
+  });
+};
+
+export const ensureAdmin = (req, res, next) => {
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
-  };
-  
+
+    req.user = decoded;
+    if (req.user.isAdmin) {
+      next();
+    } else {
+      res.status(403).json({ message: 'Forbidden' });
+    }
+  });
+};

@@ -1,7 +1,7 @@
 // userController.js
 import crypto from 'crypto';
 import User from "../models/user.js";
-import { sendForgotPasswordEmail } from "../utils/nodeMailer.js";
+import { sendForgetPasswordEmail } from "../utils/nodeMailer.js";
 
 const userController = {
 
@@ -130,7 +130,7 @@ const userController = {
       const resetLink = `http://${req.headers.host}/api/user/reset-password/${token}`;
 
       // Use your sendVerificationEmail function
-      await sendForgotPasswordEmail(user.email, `Please click on the following link, or paste this into your browser to complete the process: ${resetLink}`);
+      await sendForgetPasswordEmail(user.email, token);
 
       res.status(200).json({ message: 'An e-mail has been sent to ' + user.email + ' with further instructions.' });
     } catch (error) {
@@ -142,6 +142,13 @@ const userController = {
   resetPasswordWithToken: async (req, res) => {
     try {
       const { token, newPassword } = req.body;
+
+      // Check if token and new password are provided
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: 'Token and new password are required.' });
+      }
+
+      // Find user by token and check if the token is expired
       const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
 
       if (!user) {
@@ -155,6 +162,7 @@ const userController = {
           return res.status(500).json({ message: 'Error resetting password' });
         }
 
+        // Clear the reset token and expiry
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
 
@@ -166,7 +174,6 @@ const userController = {
       res.status(500).json({ message: 'Unexpected error during the password reset process' });
     }
   },
-
 
   getReferrals: async (req, res) => {
     try {
@@ -193,7 +200,7 @@ const userController = {
   
   
 
-  getReferralName: async (req, res) => {
+  getReferralCode: async (req, res) => {
     try {
       const userId = req.params.userId;
       const user = await User.findById(userId);
@@ -206,6 +213,22 @@ const userController = {
     } catch (error) {
       console.error('Error fetching referral code:', error);
       res.status(500).json({ message: 'Internal Server Error' });
+    }
+  },
+
+  getTotalStaked: async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await User.findById(userId).select('stakes');
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const totalStaked = user.stakes.reduce((total, stake) => total + stake.nacAmount, 0);
+      res.status(200).json({ totalStaked });
+    } catch (error) {
+      console.error("Error fetching total staked amount:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   },
   
