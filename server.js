@@ -17,10 +17,7 @@ const app = express();
 
 
 // Middleware
-app.use(cors({
-    origin: 'http://localhost:3001', // Frontend URL
-    credentials: true,
-}));
+app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
