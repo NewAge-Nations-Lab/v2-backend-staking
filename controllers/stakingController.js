@@ -209,6 +209,66 @@ const stakingController = {
     }
   },
 
+  getAvailableNacReward: async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      const stakingConfig = await StakingConfiguration.findOne();
+      if (!stakingConfig) {
+        return res.status(500).json({ message: "Staking configuration not found" });
+      }
+  
+      const now = new Date();
+      let totalNacRewards = 0;
+  
+      user.stakes.forEach(stake => {
+        const daysStaked = Math.floor((now - new Date(stake.startDate)) / (1000 * 60 * 60 * 24));
+        if (!stake.dailyNacClaimed && daysStaked > 0) {
+          totalNacRewards += calculateNacRewards(stake.nacAmount, stakingConfig.nacRewardPercentage) * daysStaked;
+        }
+      });
+  
+      res.status(200).json({ availableNacRewards: totalNacRewards });
+    } catch (error) {
+      console.error("Error fetching available NAC rewards:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+  
+  getAvailableDaiReward: async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      const stakingConfig = await StakingConfiguration.findOne();
+      if (!stakingConfig) {
+        return res.status(500).json({ message: "Staking configuration not found" });
+      }
+  
+      const now = new Date();
+      let totalDaiRewards = 0;
+  
+      user.stakes.forEach(stake => {
+        const daysStaked = Math.floor((now - new Date(stake.startDate)) / (1000 * 60 * 60 * 24));
+        if (daysStaked >= stakingConfig.daiEarningDays && !stake.monthlyDaiClaimed) {
+          totalDaiRewards += calculateDaiRewards(stake.daiAmount, stakingConfig.daiRewardPercentage, daysStaked, stakingConfig.daiEarningDays);
+        }
+      });
+  
+      res.status(200).json({ availableDaiRewards: totalDaiRewards });
+    } catch (error) {
+      console.error("Error fetching available DAI rewards:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   claimDaiReward: async (req, res) => {
     try {
       const userId = req.params.userId;
@@ -309,7 +369,7 @@ const stakingController = {
   },
 
   getUserStakes: async (req, res) => {
-    const userId = req.user._id;
+    const userId = req.params.userId;
 
     const user = await User.findById(userId).select('stakes');
     if (!user) {
