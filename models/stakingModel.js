@@ -4,6 +4,7 @@ const stakeTransactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   nacAmount: { type: Number, required: true },
   daiAmount: { type: Number, required: true },
+  nacPriceUSD: { type: Number, required: true }, 
   date: { type: Date, default: Date.now },
   type: { type: String, default: 'Stake' }, // Stake type for differentiation
 });
@@ -25,7 +26,8 @@ const stakingConfigurationSchema = new mongoose.Schema({
   daiRewardPercentage: { type: Number, default: 0.05 }, // 5%
   daiEarningDays: { type: Number, default: 30 },
   duration: { type: Number, default: 30 }, // duration in days
-  referralPercentage: {type: Number, default: 0.10} // 10%
+  referralPercentage: {type: Number, default: 0.10}, // 10%
+  nacPriceUSD: { type: Number, required: true }, 
 });
 
 const StakingConfiguration = mongoose.model('StakingConfiguration', stakingConfigurationSchema);

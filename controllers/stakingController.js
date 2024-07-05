@@ -1,6 +1,11 @@
 import User from "../models/user.js";
+import axios from 'axios';
 import { sendStakeNotification, sendUnstakeNotification } from '../utils/nodeMailer.js';
 import { StakeTransaction, UnstakeTransaction, StakingConfiguration } from '../models/stakingModel.js';
+
+
+
+
 
 const calculateDaiRewards = (daiAmount, daiRewardPercentage, daysStaked, daiEarningDays) => {
   if (!daiAmount || isNaN(daiAmount) || !daiRewardPercentage || isNaN(daiRewardPercentage) || !daysStaked || isNaN(daysStaked) || !daiEarningDays || isNaN(daiEarningDays)) {
@@ -22,7 +27,7 @@ const calculateNacRewards = (nacAmount, nacRewardPercentage) => {
 
 const stakingController = {
   stake: async (req, res) => {
-    const { nacAmount, daiAmount } = req.body;
+    const { nacAmount } = req.body;
     const userId = req.params.userId;
 
     const user = await User.findById(userId);
@@ -34,6 +39,27 @@ const stakingController = {
     if (!stakingConfig) {
       return res.status(500).json({ message: "Staking configuration not found" });
     }
+
+    
+    let nacPriceUSD;
+
+    try {
+      const response = await axios.get('https://api.dexscreener.com/latest/dex/tokens/0xa486a99109d21ac204a2219c8e40fb0733afec88');
+      nacPriceUSD = parseFloat(response.data.pairs[0].priceUsd);
+      
+      if (nacPriceUSD) {
+        // Update staking configuration with the new price
+        stakingConfig.nacPriceUSD = nacPriceUSD;
+        await stakingConfig.save();
+      }
+    } catch (error) {
+      console.error("Error fetching NAC price:", error);
+      nacPriceUSD = stakingConfig.nacPriceUSD; // Fallback to the saved price
+    }
+
+    let daiAmount = nacAmount * nacPriceUSD;
+
+    
 
     const isFirstStake = user.stakeCount === 0;
 
@@ -61,6 +87,7 @@ const stakingController = {
       userId: user._id,
       nacAmount,
       daiAmount,
+      nacPriceUSD,
     });
     await stakeTransaction.save();
 
@@ -365,6 +392,7 @@ const stakingController = {
       daiEarningDays: stakingConfig.daiEarningDays,
       duration: stakingConfig.duration,
       referralPercentage: stakingConfig.referralPercentage,
+      nacPriceUSD: stakingConfig.nacPriceUSD,
     });
   },
 
