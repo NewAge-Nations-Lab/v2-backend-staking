@@ -36,7 +36,7 @@ export const sendStakeNotification = async (to, nacAmount, daiAmount, daiRewardP
     from: '"Newage" <noreply@newagecoin.cash>', // Updated line
     to,
     subject: 'NAC Staking Confirmation',
-    text: `Dear User,\n\nWe are pleased to inform you that you have successfully staked ${nacAmount} NAC. Additionally, ${daiAmount} DAI has been automatically staked on your behalf.\n\nYou will receive ${daiRewardPercentage * 100}% of the staked DAI amount as rewards every month for the duration of the staking period.\n\nThank you for choosing Newage.\n\nBest regards,\nThe Newage Team`,
+    text: `Dear User,\n\nWe are pleased to inform you that you have successfully staked ${nacAmount} NAC. Additionally, ${daiAmount} DAI has been automatically staked on your behalf.\n\nYou will receive ${daiRewardPercentage * 100}% of DAI for this staking duration.\n\nThank you for choosing Newage.\n\nBest regards,\nThe Newage Team`,
   };
 
   return transporter.sendMail(mailOptions);
