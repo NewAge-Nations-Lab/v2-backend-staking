@@ -27,7 +27,7 @@ const stakingConfigurationSchema = new mongoose.Schema({
   daiEarningDays: { type: Number, default: 30 },
   duration: { type: Number, default: 30 }, // duration in days
   referralPercentage: {type: Number, default: 0.10}, // 10%
-  nacPriceUSD: { type: Number, required: true }, 
+  nacPriceUSD: { type: Number, required: false }, 
 });
 
 const StakingConfiguration = mongoose.model('StakingConfiguration', stakingConfigurationSchema);
