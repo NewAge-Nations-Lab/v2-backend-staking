@@ -100,7 +100,8 @@ const authController = {
           user: {
             id: user._id,
             username: user.username,
-            email: user.email, // Include other user properties as needed
+            email: user.email,
+            isAdmin: user.isAdmin, // Include other user properties as needed
           },
         });
       });
